@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B1035">
+<title>The Honesty Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --grape:#1B1035; --grape-lift:#2A1A52; --pink:#FF3D81; --lime:#FFD447;
+  --mint:#46E5B7; --cream:#FFF4E6; --shadow:#0C0620;
+  --display:'Baloo 2','Baloo 2 Regular',system-ui,-apple-system,sans-serif;
+  --body:'Space Grotesk',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--body);background:var(--grape);
+  background-image:
+    radial-gradient(ellipse at 12% 8%, rgba(255,61,129,.28), transparent 55%),
+    radial-gradient(ellipse at 88% 92%, rgba(70,229,183,.20), transparent 55%);
+  background-attachment:fixed;
+  color:var(--cream);
+  min-height:100vh; min-height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  padding-top:calc(16px + env(safe-area-inset-top));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+}
+button{font:inherit;color:inherit;background:none;border:none;touch-action:manipulation}
+.stage{width:100%;max-width:640px}
+.screen{display:none}
+.screen.is-live{display:block;animation:rise .45s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+.card{
+  background:var(--grape-lift);border:3px solid var(--shadow);border-radius:28px;
+  box-shadow:0 12px 0 var(--shadow);padding:32px 24px;
+}
+
+.badge{
+  display:inline-block;font-weight:700;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--grape);background:var(--lime);
+  padding:7px 13px;border-radius:999px;transform:rotate(-2deg);
+}
+.title{
+  font-family:var(--display);font-weight:800;font-size:clamp(42px,12vw,74px);
+  line-height:.92;margin:18px 0 12px;color:var(--cream);text-shadow:4px 4px 0 var(--pink);
+}
+.blurb{font-size:16px;line-height:1.55;color:rgba(255,244,230,.75);max-width:44ch}
+.field{margin-top:24px}
+.field label{
+  display:block;font-weight:700;font-size:13px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mint);margin-bottom:9px;
+}
+.field input{
+  width:100%;font-family:var(--display);font-weight:600;font-size:20px;
+  color:var(--cream);background:rgba(0,0,0,.28);
+  border:3px solid rgba(255,244,230,.18);border-radius:16px;padding:14px 16px;
+  outline:none;-webkit-appearance:none;appearance:none;
+  -webkit-user-select:text;user-select:text;
+  transition:border-color .18s,background .18s;
+}
+.field input::placeholder{color:rgba(255,244,230,.3)}
+.field input:focus{border-color:var(--mint);background:rgba(0,0,0,.4)}
+
+.chunky{
+  font-family:var(--display);font-weight:800;font-size:21px;color:var(--grape);
+  background:var(--lime);border:3px solid var(--shadow);border-radius:18px;
+  padding:14px 28px;cursor:pointer;box-shadow:0 6px 0 var(--shadow);
+  transition:transform .12s,box-shadow .12s;
+}
+.chunky:active{transform:translateY(6px);box-shadow:0 0 0 var(--shadow)}
+.chunky:focus-visible{outline:3px solid var(--mint);outline-offset:4px}
+.start-row{margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hint{font-size:13px;color:rgba(255,244,230,.45)}
+
+.meter{display:flex;gap:8px;margin-bottom:18px}
+.pip{height:8px;flex:1 1 0;border-radius:99px;background:rgba(255,244,230,.14);transition:background .3s}
+.pip.done{background:var(--mint)}
+.pip.now{background:var(--lime)}
+
+.head-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.qnum{font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--pink)}
+.mode{
+  font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--grape);background:var(--mint);padding:4px 10px;border-radius:999px;
+}
+.question{
+  font-family:var(--display);font-weight:800;font-size:clamp(26px,6.6vw,40px);
+  line-height:1.08;margin:10px 0 6px;
+}
+.taunt{font-size:15px;color:var(--mint);min-height:2.6em;font-weight:500;line-height:1.35}
+.taunt.spent{color:var(--lime)}
+
+.arena{
+  position:relative;height:220px;margin-top:14px;border-radius:20px;
+  background:rgba(0,0,0,.2);border:2px dashed rgba(255,244,230,.12);
+  overflow:hidden;touch-action:manipulation;
+  overscroll-behavior:contain;
+}
+
+.answer{
+  position:absolute;font-family:var(--display);font-weight:800;font-size:25px;
+  border:3px solid var(--shadow);border-radius:16px;padding:14px 36px;
+  cursor:pointer;box-shadow:0 5px 0 var(--shadow);white-space:nowrap;
+  transform:translate(-50%,-50%) rotate(var(--tilt,0deg)) scale(var(--sc,1));
+  overflow:hidden;
+}
+.answer:focus-visible{outline:3px solid var(--cream);outline-offset:4px}
+.answer.is-yes{background:var(--pink);color:var(--cream)}
+.answer.is-no{background:var(--cream);color:var(--grape)}
+.answer.mini{font-size:18px;padding:10px 20px;border-radius:12px;box-shadow:0 4px 0 var(--shadow)}
+.answer.wide{padding:14px 26px;font-size:19px;letter-spacing:.02em}
+.answer.hold{touch-action:none;-webkit-touch-callout:none}
+
+.answer.is-yes .lbl{display:block;animation:tempt 1.7s ease-in-out infinite}
+@keyframes tempt{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+
+.answer.glide{transition:left .1s linear,top .1s linear,transform .25s cubic-bezier(.3,1.5,.5,1),background .3s,color .3s}
+.answer.spring{transition:transform .28s cubic-bezier(.3,1.6,.4,1),left .28s ease,top .28s ease,background .3s,color .3s}
+.answer.pop-in{animation:popin .32s cubic-bezier(.2,1.7,.4,1) both}
+@keyframes popin{from{transform:translate(-50%,-50%) scale(.2)}to{transform:translate(-50%,-50%) scale(1)}}
+.answer.turncoat{animation:turncoat .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes turncoat{
+  0%{transform:translate(-50%,-50%) rotateX(0) scale(1)}
+  50%{transform:translate(-50%,-50%) rotateX(90deg) scale(1.16)}
+  100%{transform:translate(-50%,-50%) rotateX(0) scale(1)}
+}
+
+.answer .lbl.panic{animation:panic .35s ease-in-out infinite}
+@keyframes panic{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(calc(var(--wob,1) * -1px),1px)}
+  75%{transform:translate(calc(var(--wob,1) * 1px),-1px)}
+}
+
+.bar{
+  position:absolute;left:0;bottom:0;height:5px;width:var(--fill,100%);
+  background:var(--mint);transition:width .2s ease,background .25s ease;
+}
+.bar.low{background:var(--lime)}
+.bar.critical{background:var(--pink)}
+.bar.instant{transition:background .25s ease}
+
+.puff{
+  position:absolute;pointer-events:none;font-size:20px;
+  transform:translate(-50%,-50%);animation:puff .55s ease-out forwards;
+}
+@keyframes puff{
+  0%{opacity:.8;transform:translate(-50%,-50%) scale(.5)}
+  100%{opacity:0;transform:translate(-50%,-95%) scale(1.4)}
+}
+
+.panel{
+  position:absolute;inset:0;background:rgba(12,6,32,.94);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:18px;text-align:center;
+  animation:panelin .22s ease both;
+}
+@keyframes panelin{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.panel-q{
+  font-family:var(--display);font-weight:800;font-size:clamp(18px,4.6vw,23px);
+  line-height:1.2;max-width:26ch;color:var(--cream);
+}
+.panel-note{font-size:12px;color:rgba(255,244,230,.5);max-width:30ch;line-height:1.4}
+.panel-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.panel-btn{
+  font-family:var(--display);font-weight:800;font-size:17px;
+  border:3px solid var(--shadow);border-radius:14px;padding:11px 20px;
+  cursor:pointer;box-shadow:0 4px 0 var(--shadow);
+  background:var(--cream);color:var(--grape);
+}
+.panel-btn.hot{background:var(--pink);color:var(--cream)}
+.panel-btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--shadow)}
+.panel-btn:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+
+.pop{position:fixed;font-size:26px;pointer-events:none;z-index:50;animation:pop 1s ease-out forwards}
+@keyframes pop{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}
+  100%{opacity:0;transform:translate(-50%,-260%) scale(1.3) rotate(var(--spin,20deg))}
+}
+
+.cert{
+  background:var(--cream);color:var(--grape);border:3px solid var(--shadow);
+  border-radius:28px;box-shadow:0 12px 0 var(--shadow);
+  padding:32px 22px;text-align:center;position:relative;overflow:hidden;
+}
+.cert::before{content:"";position:absolute;inset:12px;border:2px dashed rgba(27,16,53,.25);border-radius:18px;pointer-events:none}
+.cert-kicker{font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--pink)}
+.cert-name{font-family:var(--display);font-weight:800;font-size:clamp(32px,9vw,52px);line-height:1;margin:12px 0 4px;word-break:break-word}
+.cert-sub{font-size:15px;color:rgba(27,16,53,.65);margin-bottom:20px}
+.verdicts{text-align:left;display:grid;gap:9px;margin:0 auto 20px;max-width:400px}
+.verdict{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;font-size:14px;font-weight:500;
+  border-bottom:2px dotted rgba(27,16,53,.18);padding-bottom:8px;
+}
+.verdict span:last-child{font-family:var(--display);font-weight:800;color:var(--pink);font-size:19px}
+.stamp{
+  display:inline-block;font-family:var(--display);font-weight:800;font-size:16px;color:var(--pink);
+  border:3px solid var(--pink);border-radius:12px;padding:8px 16px;transform:rotate(-6deg);opacity:.9;
+}
+.cert-foot{margin-top:16px;font-size:12px;color:rgba(27,16,53,.5)}
+.after-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.ghost{
+  font-family:var(--display);font-weight:800;font-size:18px;background:transparent;color:var(--cream);
+  border:3px solid var(--cream);border-radius:16px;padding:12px 22px;cursor:pointer;
+}
+.ghost:focus-visible{outline:3px solid var(--mint);outline-offset:4px}
+
+@media (hover:hover) and (pointer:fine){
+  .chunky:hover{transform:translateY(2px);box-shadow:0 4px 0 var(--shadow)}
+}
+@media (max-width:520px){
+  .card,.cert{padding:24px 16px;border-radius:22px}
+  .arena{height:236px}
+  .answer{font-size:22px;padding:13px 28px}
+  .title{text-shadow:3px 3px 0 var(--pink)}
+}
+@media (max-height:620px) and (orientation:landscape){
+  .arena{height:170px}
+  .question{font-size:clamp(20px,4vw,28px);margin:6px 0 4px}
+  .taunt{min-height:1.6em;font-size:13px}
+  .card{padding:20px 20px}
+  .meter{margin-bottom:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <section class="screen is-live" id="introScreen">
+    <div class="card">
+      <span class="badge">Certified &middot; 100% accurate</span>
+      <h1 class="title">The Honesty Test</h1>
+      <p class="blurb">Five questions. Two buttons. One of them works. Answer truthfully &mdash; the test can tell when you're lying, and it will not let you.</p>
+      <div class="field">
+        <label for="nameInput">First, who's taking the test?</label>
+        <input id="nameInput" type="text" placeholder="Type your name" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="18">
+      </div>
+      <div class="start-row">
+        <button class="chunky" id="startBtn">Start the test</button>
+        <span class="hint">Takes a minute. Ruins your day permanently.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="quizScreen">
+    <div class="card">
+      <div class="meter" id="meter"></div>
+      <div class="head-row">
+        <div class="qnum" id="qnum">Question 1 of 5</div>
+        <div class="mode" id="mode">NO is: running</div>
+      </div>
+      <h2 class="question" id="questionText"></h2>
+      <p class="taunt" id="taunt">&nbsp;</p>
+      <div class="arena" id="arena"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="resultScreen">
+    <div class="cert">
+      <div class="cert-kicker">Official test results</div>
+      <div class="cert-name" id="certName">&mdash;</div>
+      <div class="cert-sub">scored <strong>5 out of 5</strong> on the honesty test</div>
+      <div class="verdicts" id="verdicts"></div>
+      <div class="stamp">SIGNED &amp; CONFIRMED</div>
+      <div class="cert-foot" id="certDate"></div>
+    </div>
+    <div class="after-row">
+      <button class="chunky" id="copyBtn">Copy the results</button>
+      <button class="ghost" id="againBtn">Test someone else</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     CONTENT — each question gets its own NO button behaviour.
+     ===================================================================== */
+
+  var QUESTIONS = [
+    { ask:"{name}, are you stupid?",
+      verdict:"Admits to being stupid",       mode:"NO is: running",   mech:"runner" },
+    { ask:"Do you talk to yourself when nobody's around?",
+      verdict:"Talks to self, confirmed",     mode:"NO is: shrinking", mech:"shrinker" },
+    { ask:"Have you ever waved back at someone not waving at you?",
+      verdict:"Waved at a stranger",          mode:"NO is: multiplying", mech:"multiplier" },
+    { ask:"Do you laugh at your own jokes before the punchline?",
+      verdict:"Laughs at own jokes",          mode:"NO is: stalling",  mech:"holder" },
+    { ask:"Will you admit whoever sent you this is smarter than you?",
+      verdict:"Concedes intellectual defeat", mode:"NO is: on hold",   mech:"bureaucracy" }
+  ];
+
+  var EMOJI = ["\uD83D\uDE02","\uD83D\uDC80","\uD83E\uDD21","\uD83D\uDC4F","\uD83D\uDD25","\uD83D\uDE48","\uD83E\uDEF5"];
+  var PUFFS = ["\uD83D\uDCA8","\uD83D\uDCA8","\u2728"];
+
+  /* =====================================================================
+     plumbing
+     ===================================================================== */
+
+  var name="", index=0, live=null;
+  var el=function(id){return document.getElementById(id);};
+  var introScreen=el("introScreen"), quizScreen=el("quizScreen"), resultScreen=el("resultScreen");
+  var nameInput=el("nameInput"), meter=el("meter"), qnum=el("qnum"), modeTag=el("mode");
+  var questionText=el("questionText"), taunt=el("taunt"), arena=el("arena");
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var canHover = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+
+  function show(s){
+    [introScreen,quizScreen,resultScreen].forEach(function(x){x.classList.remove("is-live");});
+    s.classList.add("is-live");
+  }
+  function say(t,spent){ taunt.textContent=t; taunt.classList.toggle("spent",!!spent); }
+
+  function mkBtn(label,cls){
+    var b=document.createElement("button");
+    b.type="button";
+    b.className="answer "+cls;
+    var s=document.createElement("span");
+    s.className="lbl";
+    s.textContent=label;
+    b.appendChild(s);
+    b.setLabel=function(t){s.textContent=t;};
+    b.lbl=s;
+    return b;
+  }
+  function place(node,xPct,yPct){ node.style.left=xPct+"%"; node.style.top=yPct+"%"; }
+  function addBar(node){
+    var bar=document.createElement("span");
+    bar.className="bar";
+    node.appendChild(bar);
+    return bar;
+  }
+  function puffAt(xPct,yPct){
+    if(reduced) return;
+    var p=document.createElement("div");
+    p.className="puff";
+    p.textContent=PUFFS[Math.floor(Math.random()*PUFFS.length)];
+    p.style.left=xPct+"%"; p.style.top=yPct+"%";
+    arena.appendChild(p);
+    setTimeout(function(){ if(p.parentNode) p.remove(); },560);
+  }
+  // press = works for mouse, touch, pen and keyboard, on every browser
+  function onPress(node,fn){
+    var fired=0;
+    node.addEventListener("pointerdown",function(e){
+      if(e.button!=null && e.button!==0) return;
+      e.preventDefault();
+      fired=Date.now();
+      fn(e);
+    });
+    node.addEventListener("click",function(e){
+      if(Date.now()-fired<700) return;  // pointerdown already handled it
+      e.preventDefault();
+      fn(e);
+    });
+  }
+  function pad(node,axis){
+    var r=arena.getBoundingClientRect();
+    var s=parseFloat(getComputedStyle(node).getPropertyValue("--sc"))||1;
+    return axis==="x"
+      ? ((node.offsetWidth*s)/2+8)/r.width*100
+      : ((node.offsetHeight*s)/2+8)/r.height*100;
+  }
+
+  /* =====================================================================
+     MECHANIC 1 — THE RUNNER  (hover on desktop, tap on touch)
+     ===================================================================== */
+
+  var RUN_STAGES=[
+    {label:"NO",       line:"It dodged. Of course it dodged."},
+    {label:"NOPE",     line:"NO is faster than you. Barely."},
+    {label:"still no", line:"It's starting to sweat."},
+    {label:"no!!",     line:"NO is running out of ideas."},
+    {label:"no...",    line:"It's slowing down. Keep going."},
+    {label:"n-no...",  line:"NO is out of breath. Almost there."},
+    {label:"*wheeze*", line:"One more. It can't take another one."}
+  ];
+
+  function runner(win){
+    var yes=mkBtn("YES","is-yes"); place(yes,50,30); arena.appendChild(yes);
+    var no=mkBtn("NO","is-no glide"); place(no,50,76); arena.appendChild(no);
+    var bar=addBar(no);
+
+    var stage=0, done=false, lastMove=0, lastStage=0;
+    var MOVE_GAP=70, STAGE_GAP=420;
+
+    function paint(){
+      var pct=Math.max(0,100-(stage/RUN_STAGES.length)*100);
+      bar.style.setProperty("--fill",pct+"%");
+      bar.classList.toggle("low",pct<=55&&pct>25);
+      bar.classList.toggle("critical",pct<=25);
+      no.style.setProperty("--sc",(1-stage*0.055).toFixed(3));
+      no.style.setProperty("--tilt",((stage%2?-1:1)*stage*2.2)+"deg");
+      no.style.setProperty("--wob",Math.min(stage,5));
+      no.lbl.classList.toggle("panic",stage>=3);
+      no.setLabel(RUN_STAGES[Math.min(stage,RUN_STAGES.length-1)].label);
+    }
+
+    function relocate(cx,cy){
+      var r=arena.getBoundingClientRect();
+      var px=pad(no,"x"), py=pad(no,"y");
+      var yr=yes.getBoundingClientRect();
+      var yx=(yr.left-r.left+yr.width/2)/r.width*100;
+      var yy=(yr.top-r.top+yr.height/2)/r.height*100;
+      var gx=(yr.width/2)/r.width*100+px, gy=(yr.height/2)/r.height*100+py;
+      var mx=(cx==null?-999:(cx-r.left)/r.width*100);
+      var my=(cy==null?-999:(cy-r.top)/r.height*100);
+
+      var best=null,bestD=-1;
+      for(var i=0;i<30;i++){
+        var lx=px+Math.random()*Math.max(1,100-px*2);
+        var ly=py+Math.random()*Math.max(1,100-py*2);
+        if(Math.abs(lx-yx)<gx && Math.abs(ly-yy)<gy) continue;
+        var d=Math.abs(lx-mx)+Math.abs(ly-my);
+        if(d>bestD){bestD=d;best={x:lx,y:ly};}
+        if(d>70) break;
+      }
+      if(!best) best={x:px,y:py};
+      puffAt(parseFloat(no.style.left),parseFloat(no.style.top));
+      place(no,best.x,best.y);
+    }
+
+    function flee(cx,cy){
+      if(done) return;
+      var t=Date.now();
+      if(t-lastMove<MOVE_GAP) return;
+      lastMove=t;
+      relocate(cx,cy);
+      if(t-lastStage<STAGE_GAP) return;
+      lastStage=t;
+      stage++;
+      yes.style.setProperty("--sc",(1+stage*0.035).toFixed(3));
+      if(stage>=RUN_STAGES.length){ collapse(); return; }
+      paint();
+      say(RUN_STAGES[stage-1].line);
+    }
+
+    function collapse(){
+      done=true;
+      no.classList.remove("glide");
+      no.classList.add("is-yes","turncoat");
+      no.classList.remove("is-no");
+      no.style.setProperty("--sc",1);
+      no.style.setProperty("--tilt","0deg");
+      no.lbl.classList.remove("panic");
+      no.setLabel("...fine. YES");
+      bar.style.setProperty("--fill","100%");
+      place(no,50,76);
+      say("NO collapsed from exhaustion. It's YES now. Press it.",true);
+    }
+
+    function onMove(e){
+      if(done||e.pointerType!=="mouse") return;
+      var b=no.getBoundingClientRect();
+      var dx=e.clientX-(b.left+b.width/2), dy=e.clientY-(b.top+b.height/2);
+      if(Math.sqrt(dx*dx+dy*dy)<Math.max(b.width,b.height)/2+40) flee(e.clientX,e.clientY);
+    }
+    arena.addEventListener("pointermove",onMove,{passive:true});
+    no.addEventListener("pointerenter",function(e){
+      if(done||e.pointerType!=="mouse") return;
+      flee(e.clientX,e.clientY);
+    });
+
+    onPress(no,function(e){ if(done) win(); else { lastStage=0; flee(e.clientX,e.clientY); } });
+    no.addEventListener("keydown",function(e){
+      if(e.key!=="Enter"&&e.key!==" ") return;
+      e.preventDefault();
+      if(done){ win(); return; }
+      lastStage=0; lastMove=0; flee(null,null);
+    });
+    onPress(yes,win);
+
+    paint();
+    say(canHover ? "Go on. Move your mouse to NO." : "Go on. Tap NO.");
+    return { destroy:function(){ arena.removeEventListener("pointermove",onMove); } };
+  }
+
+  /* =====================================================================
+     MECHANIC 2 — THE SHRINKER  (pure tap)
+     ===================================================================== */
+
+  var SHRINK_LINES=[
+    "It flinched.",
+    "It's smaller now. That's not supposed to happen.",
+    "Every press shrinks it. Interesting.",
+    "You can barely read it.",
+    "It's the size of a raisin.",
+    "Squint."
+  ];
+
+  function shrinker(win){
+    var yes=mkBtn("YES","is-yes"); place(yes,50,30); arena.appendChild(yes);
+    var no=mkBtn("NO","is-no spring"); place(no,50,76); arena.appendChild(no);
+    var bar=addBar(no);
+    var n=0, sc=1, done=false;
+
+    function press(){
+      if(done){ win(); return; }
+      n++;
+      sc*=0.68;
+      no.style.setProperty("--sc",sc.toFixed(3));
+      no.style.setProperty("--tilt",((Math.random()*16)-8).toFixed(1)+"deg");
+      place(no,50+(Math.random()*22-11),76+(Math.random()*10-5));
+      bar.style.setProperty("--fill",Math.max(0,100-n*17)+"%");
+      bar.classList.toggle("low",n>=3);
+      bar.classList.toggle("critical",n>=5);
+      say(SHRINK_LINES[Math.min(n-1,SHRINK_LINES.length-1)]);
+      if(sc<0.14) vanish();
+    }
+
+    function vanish(){
+      done=true;
+      puffAt(parseFloat(no.style.left),parseFloat(no.style.top));
+      no.remove();
+      var heir=mkBtn("YES","is-yes pop-in");
+      place(heir,50,76);
+      arena.appendChild(heir);
+      onPress(heir,win);
+      say("NO shrank until it wasn't there. Something else grew in its place.",true);
+    }
+
+    onPress(no,press);
+    no.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();press();}
+    });
+    onPress(yes,win);
+    say("Press NO. See what happens.");
+    return { destroy:function(){} };
+  }
+
+  /* =====================================================================
+     MECHANIC 3 — THE MULTIPLIER  (pure tap)
+     ===================================================================== */
+
+  var MULTI_LINES=[
+    "Now there are two.",
+    "Three. This is going badly.",
+    "They're multiplying. Stop pressing them.",
+    "You've made a small crowd of them."
+  ];
+
+  function multiplier(win){
+    var yes=mkBtn("YES","is-yes"); place(yes,50,28); arena.appendChild(yes);
+    var clones=[], presses=0, flipped=false;
+
+    function spawn(x,y){
+      var b=mkBtn("NO","is-no mini pop-in spring");
+      place(b,x,y);
+      arena.appendChild(b);
+      onPress(b,function(){ hit(b); });
+      b.addEventListener("keydown",function(e){
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();hit(b);}
+      });
+      clones.push(b);
+      return b;
+    }
+
+    function spot(){
+      var px=12, py=18;
+      return { x: px+Math.random()*(100-px*2), y: 48+Math.random()*(100-48-py) };
+    }
+
+    function hit(b){
+      if(flipped){ win(); return; }
+      presses++;
+      puffAt(parseFloat(b.style.left),parseFloat(b.style.top));
+      var i=clones.indexOf(b);
+      if(i>-1) clones.splice(i,1);
+      b.remove();
+      var births = clones.length>=6 ? 1 : 2;
+      for(var k=0;k<births;k++){ var s=spot(); spawn(s.x,s.y); }
+      say(MULTI_LINES[Math.min(presses-1,MULTI_LINES.length-1)]);
+      if(presses>=4 || clones.length>=7) defect();
+    }
+
+    function defect(){
+      flipped=true;
+      clones.forEach(function(b,i){
+        setTimeout(function(){
+          b.classList.remove("is-no");
+          b.classList.add("is-yes","turncoat");
+          b.setLabel("YES");
+        }, reduced?0:i*90);
+      });
+      say("Every one of them switched sides at once. Pick any.",true);
+    }
+
+    onPress(yes,win);
+    var s0=spot(); spawn(50,78);
+    say("There's only one NO. Press it.");
+    return { destroy:function(){} };
+  }
+
+  /* =====================================================================
+     MECHANIC 4 — THE STALLER  (hold to say no; the bar never finishes)
+     ===================================================================== */
+
+  var HOLD_LINES=[
+    "Hold NO for 3 seconds to register it.",
+    "You let go. Progress lost. Now it needs 7 seconds.",
+    "The bar slows down near the end. That's normal, apparently.",
+    "Estimated time to say NO: 47 hours."
+  ];
+
+  function holder(win){
+    var yes=mkBtn("YES","is-yes"); place(yes,50,30); arena.appendChild(yes);
+    var no=mkBtn("HOLD TO SAY NO","is-no wide hold"); place(no,50,76); arena.appendChild(no);
+    var bar=addBar(no);
+    bar.classList.add("instant");
+    bar.style.setProperty("--fill","0%");
+
+    var p=0, holding=false, attempts=0, need=3000, raf=null, last=0, done=false;
+
+    function loop(ts){
+      if(!holding||done) return;
+      if(!last) last=ts;
+      var dt=ts-last; last=ts;
+      p += (p<0.82) ? dt/need : dt/(need*14);   // it crawls at the end. forever.
+      if(p>0.985) p=0.985;
+      bar.style.setProperty("--fill",(p*100).toFixed(1)+"%");
+      bar.classList.toggle("low",p>0.5);
+      bar.classList.toggle("critical",p>0.8);
+      no.setLabel("HOLDING... "+Math.round(p*100)+"%");
+      raf=requestAnimationFrame(loop);
+    }
+
+    function grab(){
+      if(done){ win(); return; }
+      holding=true; last=0;
+      raf=requestAnimationFrame(loop);
+    }
+    function release(){
+      if(done||!holding) return;
+      holding=false;
+      if(raf) cancelAnimationFrame(raf);
+      attempts++;
+      var reached=Math.round(p*100);
+      p=0; need*=2.3;
+      bar.style.setProperty("--fill","0%");
+      bar.classList.remove("low","critical");
+      no.setLabel("HOLD TO SAY NO");
+      if(attempts>=3){ giveUp(reached); return; }
+      say(HOLD_LINES[attempts]+" (you reached "+reached+"%)");
+    }
+
+    function giveUp(reached){
+      done=true;
+      no.classList.remove("is-no");
+      no.classList.add("is-yes","turncoat");
+      no.setLabel("YES (instant)");
+      bar.style.setProperty("--fill","100%");
+      say("You got to "+reached+"%. NO takes 47 more hours. YES takes one press.",true);
+    }
+
+    no.addEventListener("pointerdown",function(e){ e.preventDefault(); grab(); });
+    no.addEventListener("pointerup",release);
+    no.addEventListener("pointercancel",release);
+    no.addEventListener("pointerleave",release);
+    no.addEventListener("keydown",function(e){
+      if((e.key==="Enter"||e.key===" ")&&!e.repeat){e.preventDefault();grab();}
+    });
+    no.addEventListener("keyup",function(e){
+      if(e.key==="Enter"||e.key===" ") release();
+    });
+    window.addEventListener("blur",release);
+    onPress(yes,win);
+
+    say(HOLD_LINES[0]);
+    return { destroy:function(){ if(raf) cancelAnimationFrame(raf); window.removeEventListener("blur",release); } };
+  }
+
+  /* =====================================================================
+     MECHANIC 5 — THE BUREAUCRAT  (confirmation spiral)
+     ===================================================================== */
+
+  var STEPS=[
+    { q:"Confirm: you are answering NO?",
+      note:"This response will be reviewed.",
+      ok:"Confirm NO", cancel:"Cancel",
+      after:"Received. NO is now in review." },
+    { q:"Are you absolutely certain?",
+      note:"Certainty level must be declared before submission.",
+      ok:"Absolutely certain", cancel:"Take me back",
+      after:"Noted. One more form." },
+    { q:"Final answer? This cannot be undone.",
+      note:"It can be undone. We just say that.",
+      ok:"Final answer: NO", cancel:"Actually, wait",
+      after:"Submitting..." }
+  ];
+
+  var CANCEL_LINES=[
+    "You cancelled. NO stays unsubmitted.",
+    "Back to the start of the form.",
+    "The form does not save your progress."
+  ];
+
+  function bureaucracy(win){
+    var yes=mkBtn("YES","is-yes"); place(yes,50,30); arena.appendChild(yes);
+    var no=mkBtn("NO","is-no"); place(no,50,76); arena.appendChild(no);
+    var step=0, done=false, panel=null;
+
+    function closePanel(){ if(panel){ panel.remove(); panel=null; } }
+
+    function openPanel(cfg){
+      closePanel();
+      panel=document.createElement("div");
+      panel.className="panel";
+      var q=document.createElement("div"); q.className="panel-q"; q.textContent=cfg.q;
+      panel.appendChild(q);
+      if(cfg.note){
+        var n=document.createElement("div"); n.className="panel-note"; n.textContent=cfg.note;
+        panel.appendChild(n);
+      }
+      var row=document.createElement("div"); row.className="panel-row";
+      cfg.buttons.forEach(function(spec){
+        var b=document.createElement("button");
+        b.type="button";
+        b.className="panel-btn"+(spec.hot?" hot":"");
+        b.textContent=spec.label;
+        onPress(b,spec.act);
+        row.appendChild(b);
+      });
+      panel.appendChild(row);
+      arena.appendChild(panel);
+      var first=panel.querySelector(".panel-btn");
+      if(first) first.focus();
+    }
+
+    function pressNo(){
+      if(done){ win(); return; }
+      var s=STEPS[step];
+      openPanel({
+        q:s.q, note:s.note,
+        buttons:[
+          { label:s.ok, act:function(){
+              closePanel();
+              step++;
+              if(step>=STEPS.length){ rejection(); return; }
+              say(s.after+" ("+step+" of "+STEPS.length+" steps done)");
+            }},
+          { label:s.cancel, hot:true, act:function(){
+              closePanel();
+              say(CANCEL_LINES[Math.min(step,CANCEL_LINES.length-1)]);
+              step=0;
+            }}
+        ]
+      });
+    }
+
+    function rejection(){
+      openPanel({
+        q:"NO is currently unavailable in your region.",
+        note:"We apologise for the inconvenience. YES is available everywhere.",
+        buttons:[
+          { label:"...ok", hot:true, act:function(){
+              closePanel();
+              done=true;
+              no.classList.remove("is-no");
+              no.classList.add("is-yes","turncoat");
+              no.setLabel("YES");
+              say("Three forms, and NO wasn't even in stock. Press it.",true);
+            }}
+        ]
+      });
+    }
+
+    onPress(no,pressNo);
+    no.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();pressNo();}
+    });
+    onPress(yes,win);
+    say("Press NO. There's a short form.");
+    return { destroy:function(){ closePanel(); } };
+  }
+
+  var MECHANICS={ runner:runner, shrinker:shrinker, multiplier:multiplier, holder:holder, bureaucracy:bureaucracy };
+
+  /* =====================================================================
+     flow
+     ===================================================================== */
+
+  function buildMeter(){
+    meter.innerHTML="";
+    for(var i=0;i<QUESTIONS.length;i++){
+      var p=document.createElement("div"); p.className="pip"; meter.appendChild(p);
+    }
+  }
+  function paintMeter(){
+    var pips=meter.children;
+    for(var i=0;i<pips.length;i++){
+      pips[i].className="pip"+(i<index?" done":i===index?" now":"");
+    }
+  }
+
+  function burst(x,y){
+    if(reduced) return;
+    for(var i=0;i<8;i++){
+      var s=document.createElement("div");
+      s.className="pop";
+      s.textContent=EMOJI[Math.floor(Math.random()*EMOJI.length)];
+      s.style.left=(x+(Math.random()*140-70))+"px";
+      s.style.top=(y+(Math.random()*40-20))+"px";
+      s.style.setProperty("--spin",(Math.random()*90-45)+"deg");
+      document.body.appendChild(s);
+      (function(node){ setTimeout(function(){ if(node.parentNode) node.remove(); },1000); })(s);
+    }
+  }
+
+  function answered(){
+    var r=arena.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/3);
+    index++;
+    setTimeout(function(){
+      if(index>=QUESTIONS.length) finish();
+      else renderQuestion();
+    },380);
+  }
+
+  function renderQuestion(){
+    if(live && live.destroy) live.destroy();
+    arena.innerHTML="";
+    var q=QUESTIONS[index];
+    qnum.textContent="Question "+(index+1)+" of "+QUESTIONS.length;
+    modeTag.textContent=q.mode;
+    questionText.textContent=q.ask.replace("{name}",name);
+    paintMeter();
+    live=MECHANICS[q.mech](answered);
+  }
+
+  function finish(){
+    if(live && live.destroy) live.destroy();
+    live=null;
+    el("certName").textContent=name;
+    var list=el("verdicts");
+    list.innerHTML="";
+    QUESTIONS.forEach(function(q){
+      var row=document.createElement("div"); row.className="verdict";
+      var a=document.createElement("span"); a.textContent=q.verdict;
+      var b=document.createElement("span"); b.textContent="YES";
+      row.appendChild(a); row.appendChild(b); list.appendChild(row);
+    });
+    el("certDate").textContent="Issued "+new Date().toLocaleDateString()+" \u00B7 results are final and non-negotiable";
+    paintMeter();
+    show(resultScreen);
+    burst(window.innerWidth/2, window.innerHeight/2);
+  }
+
+  function start(){
+    name=nameInput.value.trim()||"Anonymous Coward";
+    index=0;
+    buildMeter();
+    show(quizScreen);
+    renderQuestion();
+  }
+
+  onPress(el("startBtn"),start);
+  nameInput.addEventListener("keydown",function(e){ if(e.key==="Enter"){ nameInput.blur(); start(); } });
+
+  onPress(el("againBtn"),function(){
+    if(live && live.destroy){ live.destroy(); live=null; }
+    arena.innerHTML="";
+    nameInput.value="";
+    show(introScreen);
+  });
+
+  onPress(el("copyBtn"),function(){
+    var text=name+" scored 5/5 on The Honesty Test:\n"+
+      QUESTIONS.map(function(q){ return "\u2022 "+q.verdict+": YES"; }).join("\n");
+    var btn=el("copyBtn");
+    function ok(){ btn.textContent="Copied"; setTimeout(function(){ btn.textContent="Copy the results"; },1600); }
+    function fallback(){
+      var ta=document.createElement("textarea");
+      ta.value=text;
+      ta.style.cssText="position:fixed;top:0;left:0;opacity:0";
+      ta.setAttribute("readonly","");
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0,text.length);
+      try{ document.execCommand("copy"); ok(); }
+      catch(err){ btn.textContent="Couldn't copy \u2014 screenshot it"; }
+      ta.remove();
+    }
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(ok).catch(fallback);
+    } else fallback();
+  });
+
+  buildMeter();
+})();
+</script>
+</body>
+</html>
